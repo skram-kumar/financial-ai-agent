@@ -3,16 +3,18 @@ Financial AI Agent — Streamlit App
 Calls the pipeline directly (no FastAPI server needed).
 """
 
-import streamlit as st
 import sys
 import os
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Load env FIRST before any src imports
+load_dotenv(Path(__file__).parent / ".env")
+
+import streamlit as st
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent))
-
-from dotenv import load_dotenv
-load_dotenv()
 
 from src.safety import check as safety_check
 from src.classifier import classify
@@ -136,6 +138,12 @@ user = {
 # ---------------------------------------------------------------------------
 def run_pipeline(query: str, prior_turns: list[str], user: dict) -> dict:
     """Run the full pipeline directly."""
+    import os
+    # Force reload env vars
+    from dotenv import load_dotenv
+    from pathlib import Path
+    load_dotenv(Path(__file__).parent / ".env", override=True)
+    
     # 1. Safety check
     safety_verdict = safety_check(query)
     if safety_verdict.blocked:
@@ -302,9 +310,16 @@ if query:
         "content":    full_text,
         "structured": structured_data,
     })
-    st.session_state.prior_turns.append(query)
-    if len(st.session_state.prior_turns) > 10:
-        st.session_state.prior_turns = st.session_state.prior_turns[-10:]
+    # Only keep prior turns if same topic (market research → market research)
+    if output.get("agent") == st.session_state.get("last_agent"):
+        st.session_state.prior_turns.append(query)
+        if len(st.session_state.prior_turns) > 5:
+            st.session_state.prior_turns = st.session_state.prior_turns[-5:]
+    else:
+        # Topic switched — reset context
+        st.session_state.prior_turns = [query]
+    
+    st.session_state.last_agent = output.get("agent")
 
 # Clear chat
 if st.session_state.messages:
