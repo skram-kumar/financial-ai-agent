@@ -1,19 +1,18 @@
 """
 Router — takes a ClassifierResult and dispatches to the right agent.
-
 Fully implemented agents:
   - portfolio_health → src.agents.portfolio_health.run()
-
+  - financial_calculator → src.agents.financial_calculator.run()
 All other agents return a structured "not implemented" stub response.
 The router never crashes — unknown agents get the stub too.
 """
-
 from __future__ import annotations
 import logging
 from typing import Any
 
 from src.classifier import ClassifierResult
 from src.agents.portfolio_health import run as run_portfolio_health
+from src.agents.financial_calculator import run as run_financial_calculator
 
 logger = logging.getLogger(__name__)
 
@@ -95,6 +94,19 @@ def route(
                 "safety_verdict": result.safety_verdict,
                 "confidence":     result.confidence,
                 "fallback_used":  result.fallback,
+            }
+            return response
+        
+        elif agent == "financial_calculator":
+            response = run_financial_calculator(
+                entities=result.entities,
+                llm=llm,
+            )
+            response["_meta"] = {
+                "agent": agent,
+                "intent": result.intent,
+                "entities": result.entities,
+                "confidence": result.confidence,
             }
             return response
 
