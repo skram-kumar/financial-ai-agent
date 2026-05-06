@@ -180,7 +180,7 @@ col1, col2, col3, col4 = st.columns(4)
 quick_queries = {
     "Portfolio Health":  "how is my portfolio doing?",
     "Market Overview":   "what happened in markets today?",
-    "NVDA Research":     "what is the price of NVDA?",
+    "Stock Research":    "what is the price of AAPL?",
     "DCA Calculator":    "if i invest 1000 monthly for 10 years at 8%, what will i have?",
 }
 for (label, qquery), col in zip(quick_queries.items(), [col1, col2, col3, col4]):
