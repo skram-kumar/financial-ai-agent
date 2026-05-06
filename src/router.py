@@ -13,6 +13,7 @@ from typing import Any
 from src.classifier import ClassifierResult
 from src.agents.portfolio_health import run as run_portfolio_health
 from src.agents.financial_calculator import run as run_financial_calculator
+from src.agents.market_research import run as run_market_research
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +46,7 @@ def _stub_response(result: ClassifierResult) -> dict:
 # Agent registry
 # ---------------------------------------------------------------------------
 
-IMPLEMENTED_AGENTS = {"portfolio_health"}
+IMPLEMENTED_AGENTS = {"portfolio_health", "financial_calculator", "market_research"}
 
 STUB_AGENTS = {
     "market_research",
@@ -99,6 +100,19 @@ def route(
         
         elif agent == "financial_calculator":
             response = run_financial_calculator(
+                entities=result.entities,
+                llm=llm,
+            )
+            response["_meta"] = {
+                "agent": agent,
+                "intent": result.intent,
+                "entities": result.entities,
+                "confidence": result.confidence,
+            }
+            return response
+        
+        elif agent == "market_research":
+            response = run_market_research(
                 entities=result.entities,
                 llm=llm,
             )
